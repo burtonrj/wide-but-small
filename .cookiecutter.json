@@ -1,0 +1,10 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "Ross Burton",
+  "email": "burtonrossj@gmail.com",
+  "friendly_name": "wide-but-small",
+  "github_user": "burtonrj",
+  "package_name": "widebutsmall",
+  "project_name": "widebutsmall",
+  "version": "0.1.0"
+}
