@@ -60,7 +60,7 @@ def test_complete_case_get_dataset(missing_data):
 
 
 def test_traintestsplit(dummy_data):
-    data = TrainTestSplit(data=dummy_data, features=list(range(500)), target="Target", test_size=0.1)
+    data = TrainTestSplit.from_dataframe(data=dummy_data, features=list(range(500)), target="Target", test_size=0.1)
     assert data.training_dataframe.shape == (90, 501)
     assert data.testing_dataframe.shape == (10, 501)
     assert data.training_data[0].shape == (90, 500)

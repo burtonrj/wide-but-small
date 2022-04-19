@@ -1,4 +1,5 @@
 from typing import Dict
+from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Set
@@ -84,18 +85,31 @@ class CompleteCase:
 
 class TrainTestSplit:
     def __init__(
-        self, data: pd.DataFrame, features: List[str], target: str, random_state: int = 42, test_size: float = 0.2
+        self,
+        data: pd.DataFrame,
+        features: List[str],
+        target: str,
+        train_index: Iterable[int],
+        test_index: Iterable[int],
     ):
         self.data = data.copy()
         self.features = features
         self.target = target
-        spliter = StratifiedShuffleSplit(n_splits=2, test_size=test_size, random_state=random_state)
-        self.train_index, self.test_index = next(spliter.split(data[features].values, data[target].values))
+        self.train_index = train_index
+        self.test_index = test_index
 
-    def _dataframe(self, idx: np.ndarray):
+    @classmethod
+    def from_dataframe(
+        cls, data: pd.DataFrame, features: List[str], target: str, random_state: int = 42, test_size: float = 0.2
+    ):
+        spliter = StratifiedShuffleSplit(n_splits=2, test_size=test_size, random_state=random_state)
+        train_index, test_index = next(spliter.split(data[features].values, data[target].values))
+        return cls(data=data, features=features, target=target, train_index=train_index, test_index=test_index)
+
+    def _dataframe(self, idx: Iterable[int]):
         return self.data.iloc[idx][self.features + [self.target]]
 
-    def _arrays(self, idx: np.ndarray):
+    def _arrays(self, idx: Iterable[int]):
         return self.data[self.features].values[idx], self.data[self.target].values[idx]
 
     @property
