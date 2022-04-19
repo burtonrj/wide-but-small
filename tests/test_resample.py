@@ -13,7 +13,7 @@ from src.widebutsmall.resample import CrossValidation
 
 def test_bootstrap(dummy_data):
     outer_data = TrainTestSplit.from_dataframe(
-        data=dummy_data, features=list(range(500)), target="Target", test_size=0.1
+        data=dummy_data, features=list(range(200)), target="Target", test_size=0.1
     )
     bootstrap_sampler = Bootstrap(sample_frac=0.9, random_state=42, n_rounds=50)
     samples = list(bootstrap_sampler.resample(data=outer_data))
@@ -38,7 +38,7 @@ def test_bootstrap(dummy_data):
 def test_crossvalidation(dummy_data, cv):
     cross_val = CrossValidation(cross_validator=cv)
     outer_data = TrainTestSplit.from_dataframe(
-        data=dummy_data, features=list(range(500)), target="Target", test_size=0.1
+        data=dummy_data, features=list(range(200)), target="Target", test_size=0.1
     )
     samples = list(cross_val.resample(data=outer_data))
 

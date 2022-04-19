@@ -102,6 +102,7 @@ class TrainTestSplit:
     def from_dataframe(
         cls, data: pd.DataFrame, features: List[str], target: str, random_state: int = 42, test_size: float = 0.2
     ):
+        data = data.sample(frac=1, random_state=random_state).copy()
         spliter = StratifiedShuffleSplit(n_splits=2, test_size=test_size, random_state=random_state)
         train_index, test_index = next(spliter.split(data[features].values, data[target].values))
         return cls(data=data, features=features, target=target, train_index=train_index, test_index=test_index)
