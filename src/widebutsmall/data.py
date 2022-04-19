@@ -1,7 +1,14 @@
-from collections import defaultdict
-from typing import List, Optional, Dict, Set
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Set
+from typing import Tuple
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import seaborn as sns
+from sklearn.model_selection import StratifiedShuffleSplit
 
 
 class Imputed:
@@ -14,6 +21,7 @@ class CompleteCase:
         self.data = data[~data[target].isnull()].copy()
         self.features = features
         self.datasets: Optional[Dict[int, Dict[str, Set]]] = None
+        self.target = target
 
     def search(self):
         missing = self.data[self.features].isnull()
@@ -35,10 +43,7 @@ class CompleteCase:
             datasets[",".join(features)] = set(self.data[~self.data[features].isnull().any(axis=1)].index.values)
 
         self.datasets: Dict[int, Dict[str, Set]] = {
-            i + 1: {
-                "Members": set(members),
-                "Features": set(features.split(","))
-            }
+            i + 1: {"Members": set(members), "Features": set(features.split(","))}
             for i, (features, members) in enumerate(datasets.items())
         }
         return self
@@ -50,7 +55,7 @@ class CompleteCase:
                 {
                     "Dataset ID": dataset_id,
                     "Number of features": len(dataset_info.get("Features")),
-                    "Number of samples": len(dataset_info.get("Members"))
+                    "Number of samples": len(dataset_info.get("Members")),
                 }
             )
         summary_of_datasets = pd.DataFrame(summary_of_datasets)
@@ -58,12 +63,53 @@ class CompleteCase:
         if min_members:
             summary_of_datasets = summary_of_datasets[summary_of_datasets["Number of samples"] >= min_members]
 
-        return summary_of_datasets.melt(
-            id_vars="Dataset ID", var_name="Property", value_name="Count"
-        ).sort_values("Count")
+        return summary_of_datasets.melt(id_vars="Dataset ID", var_name="Property", value_name="Count").sort_values(
+            "Count"
+        )
 
+    def plot_dataset_summary(
+        self, min_members: Optional[int] = None, datasets: Optional[List[int]] = None, **kwargs
+    ) -> plt.Axes:
+        data = self.summarise_datasets(min_members=min_members)
+        if datasets:
+            data = data[data["Dataset ID"].isin(datasets)]
+        ax = sns.barplot(data=data, x="Dataset ID", y="Count", hue="Property", **kwargs)
+        return ax
+
+    def get_dataset(self, dataset_id: int) -> pd.DataFrame:
+        return self.data[list(self.datasets[dataset_id]["Features"]) + [self.target]].loc[
+            self.datasets[dataset_id]["Members"]
+        ]
 
 
 class TrainTestSplit:
-    def __init__(self):
-        pass
+    def __init__(
+        self, data: pd.DataFrame, features: List[str], target: str, random_state: int = 42, test_size: float = 0.2
+    ):
+        self.data = data.copy()
+        self.features = features
+        self.target = target
+        spliter = StratifiedShuffleSplit(n_splits=2, test_size=test_size, random_state=random_state)
+        self.train_index, self.test_index = next(spliter.split(data[features].values, data[target].values))
+
+    def _dataframe(self, idx: np.ndarray):
+        return self.data.iloc[idx][self.features + [self.target]]
+
+    def _arrays(self, idx: np.ndarray):
+        return self.data[self.features].values[idx], self.data[self.target].values[idx]
+
+    @property
+    def training_dataframe(self) -> pd.DataFrame:
+        return self._dataframe(idx=self.train_index)
+
+    @property
+    def testing_dataframe(self) -> pd.DataFrame:
+        return self._dataframe(idx=self.test_index)
+
+    @property
+    def training_data(self) -> Tuple[np.ndarray, np.ndarray]:
+        return self._arrays(idx=self.train_index)
+
+    @property
+    def testing_data(self) -> Tuple[np.ndarray, np.ndarray]:
+        return self._arrays(idx=self.test_index)

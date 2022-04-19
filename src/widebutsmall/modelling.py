@@ -1,9 +1,12 @@
-from typing import List, Dict, Optional, Tuple
 from collections import namedtuple
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 import numpy as np
-from sklearn.base import ClassifierMixin
 import pandas as pd
+from sklearn.base import ClassifierMixin
 
 from .data import TrainTestSplit
 from .resample import Resample
@@ -40,9 +43,7 @@ class Model:
             raise AttributeError(f"Invalid metric, must be one of: {Performance._fields}")
 
     def evaluate(
-            self,
-            train_test: TrainTestSplit,
-            holdout: TrainTestSplit
+        self, train_test: TrainTestSplit, holdout: TrainTestSplit
     ) -> List[Dict[str, float], Dict[str, float]]:
         if not self.fitted:
             raise ValueError("Cannot assess the performance of a model that has not been fitted")
@@ -51,13 +52,11 @@ class Model:
         # Todo: compute auc score
         # Todo: compute balanced accuracy
         # Todo: compute confusion matrix
-        self.training_performance = Performance()
-        self.testing_performance = Performance()
-        self.holdout_performance = Performance()
+        # self.training_performance = Performance()
+        # self.testing_performance = Performance()
+        # self.holdout_performance = Performance()
 
-        return [
-            {}, {}
-        ]
+        return [{}, {}]
 
     def feature_importance(self):
         pass
@@ -67,12 +66,7 @@ class Model:
 
 
 class ModelPipeline:
-    def __init__(
-            self,
-            data: TrainTestSplit,
-            features: List[str],
-            resampling_method: Resample
-    ):
+    def __init__(self, data: TrainTestSplit, features: List[str], resampling_method: Resample):
         self._models: Dict[str, ClassifierMixin] = {}
         self._locked: bool = False
         self.data: TrainTestSplit = data
